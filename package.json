@@ -12,10 +12,10 @@
     "test": "vitest",
     "test:run": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage",
-    "build": "yarn workspace frontend build && yarn workspace backend build",
+    "build": "yarn workspace mcp-app build && yarn workspace backend build && yarn workspace frontend build",
     "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
-    "dev": "yarn workspace frontend dev"
+    "dev": "concurrently \"yarn workspace backend dev\" \"yarn workspace frontend dev\""
   },
   "devDependencies": {
     "@eslint/js": "*",
@@ -35,18 +35,13 @@
     "secretlint": "*",
     "typescript": "*",
     "typescript-eslint": "*",
+    "concurrently": "*",
+    "supertest": "*",
+    "@types/supertest": "*",
     "vitest": "*"
   },
   "lint-staged": {
-    "**/*.ts": [
-      "npx secretlint",
-      "bash scripts/security/check-sast.sh",
-      "npx eslint --max-warnings 0 --no-warn-ignored",
-      "bash -c 'yarn build'",
-      "bash -c 'yarn test:coverage'",
-      "bash -c 'yarn check-staged-coverage'"
-    ],
-    "**/*.tsx": [
+    "**/*.{ts,tsx}": [
       "npx secretlint",
       "bash scripts/security/check-sast.sh",
       "npx eslint --max-warnings 0 --no-warn-ignored",

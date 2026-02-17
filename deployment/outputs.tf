@@ -18,6 +18,11 @@ output "api_url" {
   value       = aws_api_gateway_stage.prod.invoke_url
 }
 
+output "mcp_server_url" {
+  description = "MCP Server URL (API Gateway + /mcp path)"
+  value       = "${aws_api_gateway_stage.prod.invoke_url}/mcp"
+}
+
 output "s3_bucket_name" {
   description = "S3 bucket name for frontend assets"
   value       = aws_s3_bucket.frontend.id

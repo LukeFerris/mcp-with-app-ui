@@ -1,32 +1,42 @@
+/**
+ * Application configuration.
+ */
 export interface AppConfig {
-  apiUrl: string;
+  mcpServerUrl: string;
 }
 
 let cachedConfig: AppConfig | null = null;
 
 /**
  * Fetches runtime configuration from /config.json (uploaded to S3 during deployment).
- * @returns Application configuration with API URL
+ * Falls back to localhost for local development.
+ * @returns Application configuration with MCP server URL
  */
 export async function loadConfig(): Promise<AppConfig> {
   if (cachedConfig) {
     return cachedConfig;
   }
 
-  const response = await fetch('/config.json', { cache: 'no-store' });
+  try {
+    const response = await fetch('/config.json', { cache: 'no-store' });
 
-  if (!response.ok) {
-    throw new Error(`Failed to load config: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const config = (await response.json()) as AppConfig;
+
+    if (!config.mcpServerUrl || typeof config.mcpServerUrl !== 'string') {
+      throw new Error('Invalid config: missing or invalid mcpServerUrl');
+    }
+
+    cachedConfig = config;
+    return config;
+  } catch {
+    const fallback: AppConfig = { mcpServerUrl: 'http://localhost:3001/mcp' };
+    cachedConfig = fallback;
+    return fallback;
   }
-
-  const config = (await response.json()) as AppConfig;
-
-  if (!config.apiUrl || typeof config.apiUrl !== 'string') {
-    throw new Error('Invalid config: missing or invalid apiUrl');
-  }
-
-  cachedConfig = config;
-  return config;
 }
 
 /**

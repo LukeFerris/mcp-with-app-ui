@@ -2,15 +2,25 @@
   "name": "backend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "node build.mjs",
+    "dev": "tsx --watch src/local.ts"
   },
   "dependencies": {
-    "@types/aws-lambda": "*"
+    "@codegenie/serverless-express": "*",
+    "@modelcontextprotocol/ext-apps": "*",
+    "@modelcontextprotocol/sdk": "*",
+    "cors": "*",
+    "express": "*",
+    "zod": "*"
   },
   "devDependencies": {
+    "@types/cors": "*",
+    "@types/express": "*",
+    "esbuild": "*",
+    "tsx": "*",
     "typescript": "*"
   }
 }

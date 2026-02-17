@@ -83,7 +83,7 @@ fi
 
 # --- Ensure build artifacts exist ---
 
-if [ ! -f "$REPO_ROOT/packages/backend/dist/index.js" ] || [ ! -d "$REPO_ROOT/packages/frontend/dist" ]; then
+if [ ! -f "$REPO_ROOT/packages/backend/dist/index.mjs" ] || [ ! -f "$REPO_ROOT/packages/backend/dist/mcp-app.html" ] || [ ! -d "$REPO_ROOT/packages/frontend/dist" ]; then
     echo "Build artifacts missing, running yarn build..."
     cd "$REPO_ROOT" || exit 1
     if ! yarn build 2>&1; then
@@ -183,15 +183,16 @@ echo ""
 
 FRONTEND_URL=$(terraform output -raw frontend_url 2>/dev/null || echo "UNAVAILABLE")
 API_URL=$(terraform output -raw api_url 2>/dev/null || echo "UNAVAILABLE")
+MCP_SERVER_URL=$(terraform output -raw mcp_server_url 2>/dev/null || echo "UNAVAILABLE")
 CF_DISTRIBUTION_ID=$(terraform output -raw cloudfront_distribution_id 2>/dev/null || echo "")
 S3_BUCKET=$(terraform output -raw s3_bucket_name 2>/dev/null || echo "")
 
 # --- Generate and upload config.json to S3 ---
 
-if [ -n "$S3_BUCKET" ] && [ "$API_URL" != "UNAVAILABLE" ]; then
+if [ -n "$S3_BUCKET" ] && [ "$MCP_SERVER_URL" != "UNAVAILABLE" ]; then
     echo "Uploading config.json to S3..."
     CONFIG_JSON=$(mktemp /tmp/config-XXXXXX.json)
-    printf '{"apiUrl":"%s"}' "$API_URL" > "$CONFIG_JSON"
+    printf '{"mcpServerUrl":"%s"}' "$MCP_SERVER_URL" > "$CONFIG_JSON"
     if aws s3 cp "$CONFIG_JSON" "s3://$S3_BUCKET/config.json" \
         --content-type "application/json" \
         --cache-control "no-cache, no-store, must-revalidate" 2>&1; then
@@ -220,16 +221,16 @@ echo "  Deployment Successful!"
 echo "========================================="
 echo ""
 echo "  Frontend URL: $FRONTEND_URL"
-echo "  Backend API URL: $API_URL"
+echo "  MCP Server URL: $MCP_SERVER_URL"
 echo ""
 echo "<deploy-output>"
 echo "<status>success</status>"
 echo "<frontend-url>$FRONTEND_URL</frontend-url>"
-echo "<api-url>$API_URL</api-url>"
+echo "<mcp-server-url>$MCP_SERVER_URL</mcp-server-url>"
 echo "<llm-instruction>"
 echo "IMPORTANT: You MUST include these deployment URLs in your response to the user."
 echo "Report that the deployment was successful and provide:"
 echo "  - Frontend URL: $FRONTEND_URL"
-echo "  - Backend API URL: $API_URL"
+echo "  - MCP Server URL: $MCP_SERVER_URL"
 echo "</llm-instruction>"
 echo "</deploy-output>"

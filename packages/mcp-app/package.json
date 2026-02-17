@@ -1,0 +1,17 @@
+{
+  "name": "mcp-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "*"
+  },
+  "devDependencies": {
+    "typescript": "*",
+    "vite": "*",
+    "vite-plugin-singlefile": "*"
+  }
+}

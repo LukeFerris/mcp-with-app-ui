@@ -1,66 +1,67 @@
-import { useState, useEffect } from 'react';
-import { fetchHelloMessage, type HelloResponse } from './api';
+import { useState, useEffect, useCallback } from 'react';
+import { loadConfig } from './config';
+import { McpTools } from './McpTools';
 
 /**
- * Main application component.
+ * Main application component. Loads config then renders MCP tools UI.
  * @returns The rendered App component
  */
 function App(): React.ReactNode {
-  const [count, setCount] = useState(0);
-  const [apiResponse, setApiResponse] = useState<HelloResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [mcpServerUrl, setMcpServerUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchHelloMessage()
-      .then(setApiResponse)
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        setError(message);
-      })
-      .finally(() => setLoading(false));
+    loadConfig().then((config) => setMcpServerUrl(config.mcpServerUrl));
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full mx-4">
-        <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
-          Fullstack Template
-        </h1>
-        <p className="text-gray-600 text-center mb-8">
-          React + TypeScript + Tailwind CSS + AWS Lambda
-        </p>
-
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">
-            Backend API
-          </h2>
-          {loading && <p className="text-gray-500">Loading...</p>}
-          {error && <p className="text-red-600">{error}</p>}
-          {apiResponse && (
-            <div className="space-y-1">
-              <p className="text-gray-800 font-medium">{apiResponse.message}</p>
-              <p className="text-sm text-gray-500">
-                {new Date(apiResponse.timestamp).toLocaleString()}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col items-center gap-4">
-          <button
-            onClick={() => setCount((c) => c + 1)}
-            className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Count: {count}
-          </button>
-          <p className="text-sm text-gray-500">
-            Click the button to increment
-          </p>
-        </div>
+  if (!mcpServerUrl) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <p className="text-gray-500 text-lg">Loading configuration...</p>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <McpTools url={mcpServerUrl} />;
 }
 
 export default App;
+
+/**
+ * Formats a tool call result for display.
+ * @param result - The raw result from callTool
+ * @returns Formatted string
+ */
+export function formatToolResult(result: unknown): string {
+  if (!result || typeof result !== 'object') {
+    return String(result ?? '');
+  }
+
+  const typed = result as { content?: Array<{ type: string; text?: string }> };
+  const textPart = typed.content?.find((c) => c.type === 'text');
+  return textPart?.text ?? JSON.stringify(result, null, 2);
+}
+
+/**
+ * Hook for managing tool call state.
+ * @param callTool - The callTool function from useMcp
+ * @returns Tool call helpers
+ */
+export function useToolCall(callTool: (name: string, args: Record<string, unknown>) => Promise<unknown>) {
+  const [results, setResults] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+
+  const invoke = useCallback(async (toolName: string) => {
+    setLoading((prev) => ({ ...prev, [toolName]: true }));
+    try {
+      const result = await callTool(toolName, {});
+      setResults((prev) => ({ ...prev, [toolName]: formatToolResult(result) }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Tool call failed';
+      setResults((prev) => ({ ...prev, [toolName]: `Error: ${msg}` }));
+    } finally {
+      setLoading((prev) => ({ ...prev, [toolName]: false }));
+    }
+  }, [callTool]);
+
+  return { results, loading, invoke };
+}

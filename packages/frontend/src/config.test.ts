@@ -10,19 +10,19 @@ describe('loadConfig', () => {
   it('fetches and returns config from /config.json', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
-      json: async () => ({ apiUrl: 'https://api.example.com/prod' }),
+      json: async () => ({ mcpServerUrl: 'https://api.example.com/prod/mcp' }),
     } as Response);
 
     const config = await loadConfig();
 
-    expect(config).toEqual({ apiUrl: 'https://api.example.com/prod' });
+    expect(config).toEqual({ mcpServerUrl: 'https://api.example.com/prod/mcp' });
     expect(globalThis.fetch).toHaveBeenCalledWith('/config.json', { cache: 'no-store' });
   });
 
   it('caches config after first fetch', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
-      json: async () => ({ apiUrl: 'https://api.example.com/prod' }),
+      json: async () => ({ mcpServerUrl: 'https://api.example.com/prod/mcp' }),
     } as Response);
 
     await loadConfig();
@@ -31,38 +31,41 @@ describe('loadConfig', () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
-  it('throws on non-ok response', async () => {
+  it('falls back to localhost on non-ok response', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 404,
       statusText: 'Not Found',
     } as Response);
 
-    await expect(loadConfig()).rejects.toThrow('Failed to load config: 404 Not Found');
+    const config = await loadConfig();
+
+    expect(config.mcpServerUrl).toBe('http://localhost:3001/mcp');
   });
 
-  it('throws when apiUrl is missing', async () => {
+  it('falls back to localhost when mcpServerUrl is missing', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({}),
     } as Response);
 
-    await expect(loadConfig()).rejects.toThrow('Invalid config: missing or invalid apiUrl');
+    const config = await loadConfig();
+
+    expect(config.mcpServerUrl).toBe('http://localhost:3001/mcp');
   });
 
-  it('throws when apiUrl is not a string', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({ apiUrl: 123 }),
-    } as Response);
+  it('falls back to localhost on fetch error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network error'));
 
-    await expect(loadConfig()).rejects.toThrow('Invalid config: missing or invalid apiUrl');
+    const config = await loadConfig();
+
+    expect(config.mcpServerUrl).toBe('http://localhost:3001/mcp');
   });
 
   it('re-fetches after resetConfigCache', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
-      json: async () => ({ apiUrl: 'https://api.example.com/prod' }),
+      json: async () => ({ mcpServerUrl: 'https://api.example.com/prod/mcp' }),
     } as Response);
 
     await loadConfig();

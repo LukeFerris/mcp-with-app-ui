@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "react": "*",
-    "react-dom": "*"
+    "react-dom": "*",
+    "use-mcp": "*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "*",
