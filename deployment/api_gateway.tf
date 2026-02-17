@@ -93,7 +93,7 @@ resource "aws_api_gateway_integration_response" "proxy_options" {
   status_code = aws_api_gateway_method_response.proxy_options_200.status_code
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization,mcp-protocol-version,mcp-session-id,last-event-id'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
@@ -143,7 +143,7 @@ resource "aws_api_gateway_integration_response" "root_options" {
   status_code = aws_api_gateway_method_response.root_options_200.status_code
 
   response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization'"
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization,mcp-protocol-version,mcp-session-id,last-event-id'"
     "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
@@ -157,7 +157,7 @@ resource "aws_api_gateway_gateway_response" "default_4xx" {
 
   response_parameters = {
     "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
-    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization,mcp-protocol-version,mcp-session-id,last-event-id'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
   }
 }
@@ -168,7 +168,7 @@ resource "aws_api_gateway_gateway_response" "default_5xx" {
 
   response_parameters = {
     "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
-    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Accept,Authorization,mcp-protocol-version,mcp-session-id,last-event-id'"
     "gatewayresponse.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
   }
 }
@@ -187,8 +187,10 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_integration.root_lambda.id,
       aws_api_gateway_method.proxy_options.id,
       aws_api_gateway_integration.proxy_options.id,
+      aws_api_gateway_integration_response.proxy_options.id,
       aws_api_gateway_method.root_options.id,
       aws_api_gateway_integration.root_options.id,
+      aws_api_gateway_integration_response.root_options.id,
       aws_api_gateway_gateway_response.default_4xx.id,
       aws_api_gateway_gateway_response.default_5xx.id,
     ]))
