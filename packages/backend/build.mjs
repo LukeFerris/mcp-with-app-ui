@@ -1,11 +1,12 @@
 import { build } from 'esbuild';
-import { cpSync, mkdirSync, existsSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const distDir = join(root, 'dist');
 
+rmSync(distDir, { recursive: true, force: true });
 mkdirSync(distDir, { recursive: true });
 
 await build({
