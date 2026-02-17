@@ -21,6 +21,7 @@ export function createExpressApp(): express.Express {
     const server = createServer();
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
+      enableJsonResponse: true,
     });
 
     try {
