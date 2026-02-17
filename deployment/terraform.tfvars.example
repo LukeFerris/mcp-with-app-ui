@@ -1,0 +1,20 @@
+# Copy this file to terraform.tfvars and customize
+#
+# environment_id and project_name are auto-generated on first deploy
+# and persisted here. Each clone gets its own values so multiple
+# environments can coexist in the same AWS account.
+# Shorten project_name here if resource names exceed AWS length limits.
+# Do not commit this file.
+
+# environment_id = ""  # Auto-generated if empty or absent
+# project_name   = ""  # Auto-derived from repo directory name if empty or absent
+
+aws_region = "us-east-1"
+
+# Lambda configuration
+# lambda_runtime     = "nodejs20.x"
+# lambda_memory_size = 128
+# lambda_timeout     = 10
+
+# API Gateway
+# api_stage_name = "prod"
