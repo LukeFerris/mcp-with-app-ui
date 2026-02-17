@@ -30,7 +30,7 @@ variable "lambda_runtime" {
 variable "lambda_memory_size" {
   description = "Lambda memory in MB"
   type        = number
-  default     = 128
+  default     = 256
 }
 
 variable "lambda_timeout" {
